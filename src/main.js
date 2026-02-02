@@ -13,10 +13,13 @@ let config = {
             debug: true
         }
     },
-    scene: [ Runner ]
+    scene: [ Menu, Runner ]
 }
-
 let game = new Phaser.Game(config)
 
-let cursors
-let { height, width } = game.config
+// reserve keyboard bindings
+let keySpace
+
+// set UI sizes
+let borderUISize = game.config.height / 15
+let borderPadding = borderUISize / 3

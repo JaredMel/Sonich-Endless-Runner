@@ -1,6 +1,9 @@
 class Runner extends Phaser.Scene {
     constructor() {
-        super('Runner')
+        super('runnerScene')
     }
     
+    create() {
+        
+    }
 }
