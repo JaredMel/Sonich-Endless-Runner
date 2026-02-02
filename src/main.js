@@ -1,9 +1,3 @@
-// Code Practice: Beyond Orthogonal
-// Name:
-// Date: 
-
-// Spritesheet by ElvGames: https://elv-games.itch.io/free-fantasy-dreamland-sprites
-
 "use strict"
 
 let config = {
@@ -19,7 +13,7 @@ let config = {
             debug: true
         }
     },
-    scene: [ Movement ]
+    scene: [ Runner ]
 }
 
 let game = new Phaser.Game(config)
