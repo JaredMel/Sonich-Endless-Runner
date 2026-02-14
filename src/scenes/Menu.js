@@ -4,14 +4,18 @@ class Menu extends Phaser.Scene {
     }
 
     preload() {
-
+        this.load.path = './assets/'
+        this.load.image('background', 'Background.png')
+        this.load.image('sun', 'Sun.png')
+        this.load.image('clouds', 'Clouds.png')
+        this.load.image('ground', 'Ground.png')
     }
 
     create() {
         // Menu Config
         let menuConfig = {
             fontFamily: 'Times New Roman',
-            fontSize: '48px',
+            fontSize: '40px',
             color: '#ffffff',
             align: 'center',
             padding: {
