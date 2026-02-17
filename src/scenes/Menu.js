@@ -37,13 +37,15 @@ class Menu extends Phaser.Scene {
         // game settings
         game.settings = {
             playerStartingPosX: 100,
-            playerStartingPosY: 340
+            playerStartingPosY: 340,
+            gravity: 900,
+            jumpVelocity: 500
         }
     }
 
     update() {
-        if (Phaser.Input.Keyboard.JustDown(keySpace)) {
+        //if (Phaser.Input.Keyboard.JustDown(keySpace)) {
             this.scene.start('runnerScene')
-        }
+        //}
     }
 }
