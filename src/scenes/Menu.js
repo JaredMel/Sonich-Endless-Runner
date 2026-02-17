@@ -9,6 +9,10 @@ class Menu extends Phaser.Scene {
         this.load.image('sun', 'Sun.png')
         this.load.image('clouds', 'Clouds.png')
         this.load.image('ground', 'Ground.png')
+        this.load.spritesheet('sonich', 'Sonich.png', {
+            frameWidth: 32,
+            frameHeight: 32
+        })
     }
 
     create() {
@@ -29,6 +33,12 @@ class Menu extends Phaser.Scene {
         this.add.text(game.config.width/4, game.config.height/4 + borderUISize + borderPadding, 'Press space to play', menuConfig).setOrigin(0, 0)
         // define key
         keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
+
+        // game settings
+        game.settings = {
+            playerStartingPosX: 100,
+            playerStartingPosY: 340
+        }
     }
 
     update() {
