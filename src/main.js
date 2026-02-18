@@ -17,6 +17,12 @@ let config = {
 }
 let game = new Phaser.Game(config)
 
+let playerStartingPosX = 100
+let playerStartingPosY = 340
+let gravity = 900
+let jumpVelocity = 500
+let centerX = game.config.width / 2
+
 // reserve keyboard bindings
 let keySpace
 
