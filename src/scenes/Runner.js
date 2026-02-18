@@ -6,7 +6,9 @@ class Runner extends Phaser.Scene {
     init() {
         this.spikeSpeed = -480
         this.spikesSpawnDelay = 1500
-        this.playerLives = 3
+        this.difficultyDelay = 5000
+        this.parallaxingSpeedMultiplier = 1
+        this.minSpikesSpawnDelay = 500
     }
     
     create() {
@@ -31,6 +33,7 @@ class Runner extends Phaser.Scene {
             this.grounded = true
         })
         this.sonich.destroyed = false
+
         // 3 second start
         this.gameStart = false
         this.clock = this.time.delayedCall(3000, () => {
@@ -47,6 +50,7 @@ class Runner extends Phaser.Scene {
                 end: 4
             })
         })
+
         // set up cursor keys
         this.cursors = this.input.keyboard.createCursorKeys()
 
@@ -63,51 +67,107 @@ class Runner extends Phaser.Scene {
             loop: true
         })
         this.spikesTimer.paused = true
+
+        // set up difficultyTimer
+        this.difficultyTimer = this.time.addEvent({
+            delay: this.difficultyDelay,
+            callback: this.difficultyUp,
+            callbackScope: this,
+            loop: true
+        })
+        this.difficultyTimer.paused = true
+
+        // set keyRESET
+        keyRESET = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R)
+
+        // failState config
+        let failStateConfig = {
+            fontFamily: 'Times New Roman',
+            fontSize: '40px',
+            backgroundColor: '#d95b00',
+            color: '#ffffff',
+            align: 'center',
+            padding: {
+                top: 5,
+                bottom: 5,
+            },
+            fixedWidth: 0
+        }
+
+        let gameOverText = this.add.text(game.config.width/2, game.config.height/3, "GAME OVER", failStateConfig).setOrigin(0.5)
+        gameOverText.visible = false
+        failStateConfig.fontSize = '36px'
+        let resetText = this.add.text(game.config.width/2, game.config.height/2, "Press R to Restart", failStateConfig).setOrigin(0.5)
+        resetText.visible = false
     }
 
+    // function to add spikes at a 50% chance
     addSpikes() {
-         let ran = Math.round(Math.random() * this.playerJumps) % 2
-         //console.log(ran)
-         if (ran === 0) {
+         let ran = Math.round(Math.random() * this.playerJumps) % 2 // random variable between 0 or 1
+         if (ran === 0) { // if 0 spawn a new spike
             let spikes = new Spikes(this, this.spikeSpeed, 32, 32)
             this.spikesGroup.add(spikes)
          }
     }
 
+    difficultyUp() {
+        // Flash Too Fast message
+        console.log("Difficulty Up") // DEBUG
+
+        if (this.spikesSpawnDelay > this.minSpikesSpawnDelay) { // check if sikesSpawnDelay is at it's minimum
+            this.spikesSpawnDelay -= 250 // shorten time between spawns
+        }
+        this.spikeSpeed -= 50 // increase spikeSpeed
+        this.parallaxingSpeedMultiplier += 0.5 // increase parallaxing speed
+    }
+
+    // function for jumping
     jump() {
-        if (this.grounded) {
-            this.sonich.setVelocityY(jumpVelocity * -1)
-            this.playerJumps++
+        if (this.grounded) { // check if Sonich is grounded
+            this.sonich.setVelocityY(jumpVelocity * -1) // make him jump
+            this.playerJumps++ // increment playerJumps
         }
     }
 
     update() {
-        if (this.sonich.body.touching.down) {
+        if (this.sonich.body.touching.down) { // check if Sonich is grounded
             this.grounded = true
         } else {
             this.grounded = false
         }
-        if (this.gameStart && !this.sonich.destroyed) {
-            this.spikesTimer.paused = false
-            this.ground.tilePositionX += 2
-            this.clouds.tilePositionX += 0.1
-            this.sun.tilePositionX += 0.01
-            this.sonich.play('running', true)
-            if (this.cursors.up.isDown && this.grounded) {
-                this.jump()
+
+        if (Phaser.Input.Keyboard.JustDown(keyRESET)) {
+            if (!this.gameStart && this.sonich.destroyed) {
+                this.scene.restart()
             }
-            this.spikesCollider = this.physics.add.overlap(this.sonich, this.spikesGroup, this.spikeCollision, null, this)
+        }
+
+        if (this.gameStart && !this.sonich.destroyed) { // check if the game is still running
+            this.spikesTimer.paused = false // start spikesTimer
+            this.difficultyTimer.paused = false // start difficultyTimer
+            this.ground.tilePositionX += 2 * this.parallaxingSpeedMultiplier // Paralax backgrounds
+            this.clouds.tilePositionX += 0.1 * this.parallaxingSpeedMultiplier
+            this.sun.tilePositionX += 0.01 * this.parallaxingSpeedMultiplier
+            this.sonich.play('running', true) // play runnning animation
+            if (this.cursors.up.isDown && this.grounded) { // check for player input
+                this.jump() // call jump()
+            }
+            this.spikesCollider = this.physics.add.overlap(this.sonich, this.spikesGroup, this.spikeCollision, null, this) // check if Sonich collided with a spike and call spikeCollision if so
         }
     }
 
+    // function for spikeCollision
     spikeCollision() {
-        if (this.playerLives > 0) {
-            this.playerLives--
-            console.log(this.playerLives)
-            this.spikesCollider.active = false
-        } else {
-            this.sonich.destroyed = true
-            this.spikesTimer.destroy()
-        }
+        this.sonich.anims.pause() // pause Sonich's animation
+        this.spikesGroup.children.each(child => { // stop all spikes in place
+            child.setVelocityX(0)
+        })
+        this.sonich.destroyed = true // kill Sonich
+        this.spikesTimer.paused = true // pause the spike timer so it doesn't spawn more
+        this.difficultyTimer.paused = true // pause the difficulty timer
+        this.gameStart = false // set gameStart to false
+
+        //this.gameOverText.visible = true
+        //this.resetText.visible = true
     }
 }
