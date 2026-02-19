@@ -9,6 +9,7 @@ class Menu extends Phaser.Scene {
         this.load.image('sun', 'art/Sun.png')
         this.load.image('clouds', 'art/Clouds.png')
         this.load.image('ground', 'art/Ground.png')
+        this.load.image('too_fast', 'art/Too_Fast.png')
         this.load.spritesheet('sonich', 'art/Sonich.png', {
             frameWidth: 32,
             frameHeight: 32

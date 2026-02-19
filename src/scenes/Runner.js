@@ -21,6 +21,8 @@ class Runner extends Phaser.Scene {
         this.sun = this.add.tileSprite(0, 0, 1380, 480, 'sun').setOrigin(0,0)
         this.clouds = this.add.tileSprite(0, 0, 1920, 480, 'clouds').setOrigin(0,0)
         this.ground = this.add.tileSprite(0, 0, 1426, 480, 'ground').setOrigin(0,0)
+        this.too_fast = this.add.tileSprite(this.game.config.width/2 - 100, 0, 640, 480, 'too_fast').setOrigin(0,0)
+        this.too_fast.visible = false
 
         // texts
         let failStateConfig = {
@@ -116,8 +118,23 @@ class Runner extends Phaser.Scene {
         })
         this.difficultyTimer.paused = true
 
+        // set up flashTimer
+        this.flashTimer = this.time.addEvent({
+            delay: 1000,
+            callback: this.pauseTimer,
+            callbackScope: this,
+            loop: true
+        }, null, this)
+        this.flashTimer.paused = true
+
         // set keySpace
         keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
+    }
+
+    // function to pause timer
+    pauseTimer() {
+        this.too_fast.visible = false
+        this.flashTimer.paused = true
     }
 
     // function to add spikes at a 75% chance
@@ -131,6 +148,9 @@ class Runner extends Phaser.Scene {
 
     difficultyUp() {
         // Flash Too Fast message
+        this.too_fast.visible = true
+        this.flashTimer.paused = false
+        this.confirmSFX.play()
 
         if (this.spikesSpawnDelay > this.minSpikesSpawnDelay) { // check if sikesSpawnDelay is at it's minimum
             this.spikesSpawnDelay -= 250 // shorten time between spawns
@@ -157,7 +177,7 @@ class Runner extends Phaser.Scene {
         } else {
             this.grounded = false
         }
-
+        // reset
         if (Phaser.Input.Keyboard.JustDown(keySpace)) {
             if (!this.gameStart && this.sonich.destroyed) {
                 this.confirmSFX.play()
