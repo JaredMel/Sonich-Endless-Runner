@@ -10,6 +10,7 @@ class Runner extends Phaser.Scene {
         this.parallaxingSpeedMultiplier = 1
         this.minSpikesSpawnDelay = 200
         this.difficultyCounter = 1
+        this.playhitOnce = true
     }
     
     create() {
@@ -46,6 +47,25 @@ class Runner extends Phaser.Scene {
         this.instructions = this.add.text(game.config.width/2, game.config.height/2, 'Press ^ to jump', failStateConfig).setOrigin(0.5)
         failStateConfig.backgroundColor = '#d95b00'
 
+        // music
+        this.music = this.sound.add('bgMusic', {
+            loop: true,
+            volume: 0.25
+        })
+
+        // sound
+        this.confirmSFX = this.sound.add('confirm', {
+            loop: false,
+            volume: 1
+        })
+        this.hitSFX = this.sound.add('hit', {
+            loop: false,
+            volume: 1
+        })
+        this.jumpSFX = this.sound.add('jump', {
+            loop: false,
+            volume: 1
+        })
 
         // add ground collision
         this.groundCollisionBox = this.add.rectangle(0, playerStartingPosY, 1426, 139, '#ffffff').setOrigin(0,0)
@@ -66,18 +86,9 @@ class Runner extends Phaser.Scene {
         this.clock = this.time.delayedCall(3000, () => {
             this.gameStart = true
             this.instructions.visible = false
+            this.music.play()
         }, null, this)
-
-        // // Sonich running animation
-        // this.anims.create({
-        //     key: 'running',
-        //     frameRate: 20,
-        //     repeat: -1,
-        //     frames: this.anims.generateFrameNumbers('sonich', {
-        //         start: 1,
-        //         end: 4
-        //     })
-        // })
+        this.countOff = this.add.text(game.config.width/2, game.config.height/4, Phaser.Math.CeilTo(this.clock.getRemainingSeconds()), failStateConfig).setOrigin(0.5)
 
         // set up cursor keys
         this.cursors = this.input.keyboard.createCursorKeys()
@@ -133,12 +144,14 @@ class Runner extends Phaser.Scene {
     // function for jumping
     jump() {
         if (this.grounded) { // check if Sonich is grounded
+            this.jumpSFX.play()
             this.sonich.setVelocityY(jumpVelocity * -1) // make him jump
             this.playerJumps++ // increment playerJumps
         }
     }
 
     update() {
+        this.countOff.text = Phaser.Math.CeilTo(this.clock.getRemainingSeconds())
         if (this.sonich.body.touching.down) { // check if Sonich is grounded
             this.grounded = true
         } else {
@@ -147,11 +160,13 @@ class Runner extends Phaser.Scene {
 
         if (Phaser.Input.Keyboard.JustDown(keySpace)) {
             if (!this.gameStart && this.sonich.destroyed) {
+                this.confirmSFX.play()
                 this.scene.restart()
             }
         }
 
         if (this.gameStart && !this.sonich.destroyed) { // check if the game is still running
+            this.countOff.visible = false
             this.spikesTimer.paused = false // start spikesTimer
             this.difficultyTimer.paused = false // start difficultyTimer
             this.ground.tilePositionX += 2 * this.parallaxingSpeedMultiplier // Paralax backgrounds
@@ -168,6 +183,11 @@ class Runner extends Phaser.Scene {
     // function for spikeCollision
     spikeCollision() {
         this.sonich.anims.pause() // pause Sonich's animation
+        this.music.pause()
+        if (this.playhitOnce) {
+            this.hitSFX.play()
+            this.playhitOnce = false
+        }
         this.spikesGroup.children.each(child => { // stop all spikes in place
             child.setVelocityX(0)
         })
