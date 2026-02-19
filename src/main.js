@@ -25,7 +25,3 @@ let jumpVelocity = 500
 
 // reserve keyboard bindings
 let keySpace, keyRESET
-
-// set UI sizes
-let borderUISize = game.config.height / 15
-let borderPadding = borderUISize / 3

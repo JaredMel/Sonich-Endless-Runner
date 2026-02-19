@@ -8,17 +8,44 @@ class Runner extends Phaser.Scene {
         this.spikesSpawnDelay = 1500
         this.difficultyDelay = 5000
         this.parallaxingSpeedMultiplier = 1
-        this.minSpikesSpawnDelay = 500
+        this.minSpikesSpawnDelay = 200
+        this.difficultyCounter = 1
     }
     
     create() {
         // counts player jumps used to add randomness
-        this.playerJumps = 0
+        this.playerJumps = 1
         // tilesprites
         this.background = this.add.tileSprite(0, 0, 1280, 480, 'background').setOrigin(0,0)
         this.sun = this.add.tileSprite(0, 0, 1380, 480, 'sun').setOrigin(0,0)
         this.clouds = this.add.tileSprite(0, 0, 1920, 480, 'clouds').setOrigin(0,0)
         this.ground = this.add.tileSprite(0, 0, 1426, 480, 'ground').setOrigin(0,0)
+
+        // texts
+        let failStateConfig = {
+            fontFamily: 'Times New Roman',
+            fontSize: '40px',
+            backgroundColor: '#d95b00',
+            color: '#ffffff',
+            align: 'center',
+            padding: {
+                top: 5,
+                bottom: 5,
+            },
+            fixedWidth: 0
+        }
+        this.gameOverText = this.add.text(game.config.width/2, game.config.height/3, "GAME OVER", failStateConfig).setOrigin(0.5)
+        this.gameOverText.visible = false
+        failStateConfig.fontSize = '36px'
+        this.resetText = this.add.text(game.config.width/2, game.config.height/2, "Press Space to Restart", failStateConfig).setOrigin(0.5)
+        this.resetText.visible = false
+        this.highscoreText = this.add.text(game.config.width/2, game.config.height/1.5, 'Highscore: ' + window.localStorage.getItem('highscore'), failStateConfig).setOrigin(0.5)
+        this.highscoreText.visible = false
+        this.scoreText = this.add.text(game.config.width/2, game.config.height/1.2, 'Score: ' + this.difficultyCounter, failStateConfig).setOrigin(0.5)
+        failStateConfig.backgroundColor = '#d95a0000'
+        this.instructions = this.add.text(game.config.width/2, game.config.height/2, 'Press ^ to jump', failStateConfig).setOrigin(0.5)
+        failStateConfig.backgroundColor = '#d95b00'
+
 
         // add ground collision
         this.groundCollisionBox = this.add.rectangle(0, playerStartingPosY, 1426, 139, '#ffffff').setOrigin(0,0)
@@ -38,18 +65,19 @@ class Runner extends Phaser.Scene {
         this.gameStart = false
         this.clock = this.time.delayedCall(3000, () => {
             this.gameStart = true
+            this.instructions.visible = false
         }, null, this)
 
-        // Sonich running animation
-        this.anims.create({
-            key: 'running',
-            frameRate: 20,
-            repeat: -1,
-            frames: this.anims.generateFrameNumbers('sonich', {
-                start: 1,
-                end: 4
-            })
-        })
+        // // Sonich running animation
+        // this.anims.create({
+        //     key: 'running',
+        //     frameRate: 20,
+        //     repeat: -1,
+        //     frames: this.anims.generateFrameNumbers('sonich', {
+        //         start: 1,
+        //         end: 4
+        //     })
+        // })
 
         // set up cursor keys
         this.cursors = this.input.keyboard.createCursorKeys()
@@ -77,34 +105,14 @@ class Runner extends Phaser.Scene {
         })
         this.difficultyTimer.paused = true
 
-        // set keyRESET
-        keyRESET = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R)
-
-        // failState config
-        let failStateConfig = {
-            fontFamily: 'Times New Roman',
-            fontSize: '40px',
-            backgroundColor: '#d95b00',
-            color: '#ffffff',
-            align: 'center',
-            padding: {
-                top: 5,
-                bottom: 5,
-            },
-            fixedWidth: 0
-        }
-
-        let gameOverText = this.add.text(game.config.width/2, game.config.height/3, "GAME OVER", failStateConfig).setOrigin(0.5)
-        gameOverText.visible = false
-        failStateConfig.fontSize = '36px'
-        let resetText = this.add.text(game.config.width/2, game.config.height/2, "Press R to Restart", failStateConfig).setOrigin(0.5)
-        resetText.visible = false
+        // set keySpace
+        keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
     }
 
-    // function to add spikes at a 50% chance
+    // function to add spikes at a 75% chance
     addSpikes() {
-         let ran = Math.round(Math.random() * this.playerJumps) % 2 // random variable between 0 or 1
-         if (ran === 0) { // if 0 spawn a new spike
+         let ran = Math.round(Math.random() * this.playerJumps) % 4 // random variable between 0 or 1
+         if (ran > 0) { // if 0 spawn a new spike
             let spikes = new Spikes(this, this.spikeSpeed, 32, 32)
             this.spikesGroup.add(spikes)
          }
@@ -112,13 +120,14 @@ class Runner extends Phaser.Scene {
 
     difficultyUp() {
         // Flash Too Fast message
-        console.log("Difficulty Up") // DEBUG
 
         if (this.spikesSpawnDelay > this.minSpikesSpawnDelay) { // check if sikesSpawnDelay is at it's minimum
             this.spikesSpawnDelay -= 250 // shorten time between spawns
         }
         this.spikeSpeed -= 50 // increase spikeSpeed
         this.parallaxingSpeedMultiplier += 0.5 // increase parallaxing speed
+        this.difficultyCounter++
+        this.scoreText.text = 'Score: ' + this.difficultyCounter
     }
 
     // function for jumping
@@ -136,7 +145,7 @@ class Runner extends Phaser.Scene {
             this.grounded = false
         }
 
-        if (Phaser.Input.Keyboard.JustDown(keyRESET)) {
+        if (Phaser.Input.Keyboard.JustDown(keySpace)) {
             if (!this.gameStart && this.sonich.destroyed) {
                 this.scene.restart()
             }
@@ -167,7 +176,13 @@ class Runner extends Phaser.Scene {
         this.difficultyTimer.paused = true // pause the difficulty timer
         this.gameStart = false // set gameStart to false
 
-        //this.gameOverText.visible = true
-        //this.resetText.visible = true
+        if (window.localStorage.getItem('highscore') < this.difficultyCounter) {
+            window.localStorage.setItem('highscore', this.difficultyCounter)
+            this.highscoreText.text = 'Highscore: ' + window.localStorage.getItem('highscore')
+        }
+
+        this.gameOverText.visible = true
+        this.resetText.visible = true
+        this.highscoreText.visible = true
     }
 }
