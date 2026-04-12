@@ -4,7 +4,7 @@ class Runner extends Phaser.Scene {
     }
 
     init() {
-        this.spikeSpeed = -480
+        this.spikeSpeed = 2
         this.spikesSpawnDelay = 1500
         this.difficultyDelay = 5000
         this.parallaxingSpeedMultiplier = 1
@@ -84,9 +84,8 @@ class Runner extends Phaser.Scene {
         this.sonich.destroyed = false
 
         // 3 second start
-        this.gameStart = false
         this.clock = this.time.delayedCall(3000, () => {
-            this.gameStart = true
+            gameStart = true
             this.instructions.visible = false
             this.music.play()
         }, null, this)
@@ -141,7 +140,7 @@ class Runner extends Phaser.Scene {
     addSpikes() {
          let ran = Math.round(Math.random() * this.playerJumps) % 4 // random variable between 0 or 1
          if (ran > 0) { // if 0 spawn a new spike
-            let spikes = new Spikes(this, this.spikeSpeed, 32, 32)
+            let spikes = new Spikes(this, 32, 32)
             this.spikesGroup.add(spikes)
          }
     }
@@ -157,6 +156,7 @@ class Runner extends Phaser.Scene {
         }
         this.spikeSpeed -= 50 // increase spikeSpeed
         this.parallaxingSpeedMultiplier += 0.5 // increase parallaxing speed
+        groundSpeed = 2 * this.parallaxingSpeedMultiplier
         this.difficultyCounter++
         this.scoreText.text = 'Score: ' + this.difficultyCounter
     }
@@ -179,17 +179,17 @@ class Runner extends Phaser.Scene {
         }
         // reset
         if (Phaser.Input.Keyboard.JustDown(keySpace)) {
-            if (!this.gameStart && this.sonich.destroyed) {
+            if (!gameStart && this.sonich.destroyed) {
                 this.confirmSFX.play()
                 this.scene.restart()
             }
         }
 
-        if (this.gameStart && !this.sonich.destroyed) { // check if the game is still running
+        if (gameStart && !this.sonich.destroyed) { // check if the game is still running
             this.countOff.visible = false
             this.spikesTimer.paused = false // start spikesTimer
             this.difficultyTimer.paused = false // start difficultyTimer
-            this.ground.tilePositionX += 2 * this.parallaxingSpeedMultiplier // Paralax backgrounds
+            this.ground.tilePositionX += groundSpeed // Paralax backgrounds
             this.clouds.tilePositionX += 0.1 * this.parallaxingSpeedMultiplier
             this.sun.tilePositionX += 0.01 * this.parallaxingSpeedMultiplier
             this.sonich.play('running', true) // play runnning animation
@@ -214,7 +214,7 @@ class Runner extends Phaser.Scene {
         this.sonich.destroyed = true // kill Sonich
         this.spikesTimer.paused = true // pause the spike timer so it doesn't spawn more
         this.difficultyTimer.paused = true // pause the difficulty timer
-        this.gameStart = false // set gameStart to false
+        gameStart = false // set gameStart to false
 
         if (window.localStorage.getItem('highscore') < this.difficultyCounter) {
             window.localStorage.setItem('highscore', this.difficultyCounter)

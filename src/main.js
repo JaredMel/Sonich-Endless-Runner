@@ -30,6 +30,9 @@ let config = {
             debug: false
         }
     },
+    scale: {
+        autoCenter: Phaser.Scale.CENTER_BOTH
+    },
     scene: [ Menu, Runner ]
 }
 let game = new Phaser.Game(config)
@@ -39,6 +42,8 @@ let playerStartingPosX = 100
 let playerStartingPosY = 340
 let gravity = 900
 let jumpVelocity = 500
+let groundSpeed = 2
+let gameStart = false
 
 // reserve keyboard bindings
 let keySpace, keyRESET
